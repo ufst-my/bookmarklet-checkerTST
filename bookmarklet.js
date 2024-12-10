@@ -72,4 +72,17 @@ javascript:(function() {
     setTimeout(function() {
         document.title = originalTitle;
     }, 5000);
+
+    // Find IDs der ikke blev matchet
+    var notFound = ids.filter(function(id) {
+        return !foundIds.has(id);
+    });
+
+    // Vis besked-boks med status
+    if (notFound.length === 0) {
+        alert("Krydsbot er færdig.\nAlle fordringsIDs er krydset af.");
+    } else {
+        alert("Krydsbot er færdig.\nDisse fordringsIDs er ikke krydset af: " + notFound.join(", "));
+    }
+
 })();
