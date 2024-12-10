@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KrydsBot, afskrivning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        a.bookmarklet {
+            display: inline-block;
+            padding: 15px 25px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 130%;
+        }
+        a.bookmarklet:hover { background-color: #0056b3; }
+        ol { margin-top: 20px; }
+        li { margin-bottom: 10px; }
+        code { font-size: 130%; }
+    </style>
+</head>
+<body>
+    <h1>Installer knap til afskrivningsmarkering i PSRM</h1>
+    <p><strong>Træk denne knap op i din bogmærkelinje:</strong></p>
+    <a class="bookmarklet" href="javascript:(function(){var script=document.createElement('script');script.src='https://ufst-my.github.io/bookmarklet-checker/bookmarklet.js?cache-buster=%27+(new Date().getTime());script.type=%27text/javascript%27;document.body.appendChild(script);})();">KrydsBot</a>
+    <h2>Instruktioner</h2>
+    <ol>
+        <li>Vis din bogmærkelinje, hvis du ikke kan se den i forvejen: <strong>Tryk <code>Ctrl+Shift+B</code> (virker for Chrome og Edge).</strong></li>
+        <li><strong>Træk knappen "KrydsBot" op i din bogmærkelinje med musen og slip.</strong></li>
+        <li>Brug bogmærket: <strong>Naviger til PSRM-afskrivningssiden og klik på bogmærket for at anvende det.</strong></li>
+    </ol>
+    <h2>Fejlfinding</h2>
+    <ol>
+        <li><code>Ctrl+Shift+B</code> kan både vise og skjule bogmærkelinjen.</li>
+        <li>Hvis du kommer til at trykke på knappen (i stedet for at trække i den), så tryk blot annuller og prøv igen.</li>
+    </ol>
+    <h2>Instruktioner i brug af knappen i PSRM</h2>
+    <ol>
+        <li>Opret afskrivningssag som du plejer i PSRM.</li>
+        <li>Fremfind excel-ark med fordringsIDs som skal indstilles til afskrivning.</li>
+        <li>Marker alle de foringer der skal afksrives og tryk herefter <code>Ctrl+C</code>.</li>
+        <li>På afskrivningssagen: Tryk på KrydsBot-knappen på din bogmærkelinje.
+            <br>Bogmærkelinjen kan altid åbnes/lukkes som vist ovenfor.</li>
+        <li>Indsæt fordringsIDs i KrydsBotten: Tryk <code>Ctrl+V</code>.</li>
+        <li>Tryk OK eller <code>Enter</code>.</li>
+        <li>Hvis der er mange fordringer, kan status følges i browserens titel.</li>
+        <li>Statussen forsvinder igen når KrydsBotten er færdig med at køre.</li>
+    </ol>
+</body>
+</html>
