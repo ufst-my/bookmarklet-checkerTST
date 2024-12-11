@@ -1,87 +1,121 @@
 javascript:(function() {
-    // Beder brugeren om at indtaste en liste af IDs adskilt af komma eller linjeskift
     var inputIds = prompt('Indtast fordringsIDs adskilt af komma eller linjeskift:', '');
-    if (!inputIds) return; // Afslutter scriptet, hvis brugeren ikke indtaster noget
+    if (inputIds === null) { 
+        // Hvis brugeren trykker annuller
+        alert("Skriv fordringsIDs ind til afkrydsning.");
+        return; 
+    }
 
-    // Opdeler inputtet i et array af trimmede IDs ved hjælp af komma eller linjeskift
-    var ids = inputIds.split(/[\r\n,]+/).map(function(id) {
-        return id.trim(); // Fjerner mellemrum før og efter hvert ID
-    });
-    var totalIds = ids.length; // Gemmer det totale antal IDs til tracking
-    var processedCount = 0; // Tæller til antallet af behandlede IDs
-    var originalTitle = document.title || 'My Page'; // Gemmer den oprindelige titel på siden til senere fallback
+    // Split og trim
+    var ids = inputIds.split(/[\r\n,]+/).map(function(id) { return id.trim(); });
+    // Fjern tomme strenge
+    ids = ids.filter(function(id) { return id.length > 0; });
 
-    // Funktion til at opdatere fanens titel med fremdriftsstatus
+    // Hvis ingen gyldige IDs
+    if (ids.length === 0) {
+        alert("Skriv fordringsIDs ind til afkrydsning.");
+        return;
+    }
+
+    var totalIds = ids.length; 
+    var processedCount = 0;
+    var originalTitle = document.title || 'My Page';
+
     function updateProgress() {
-        processedCount++; // Øger tælleren for behandlede IDs
-        var pct = Math.round((processedCount / totalIds) * 100); // Beregner procentvis fremdrift
-        document.title = 'Markerer: ' + pct + '% - ' + originalTitle; // Opdaterer sidens titel
+        processedCount++;
+        var pct = Math.round((processedCount / totalIds) * 100);
+        document.title = 'Markerer: ' + pct + '% - ' + originalTitle;
     }
 
     // Adgang til main frame
     var f = window.frames['main'];
-    if (!f) return; // Afslutter, hvis rammen ikke findes
+    if (!f) {
+        alert("Rammen 'main' blev ikke fundet.");
+        return;
+    }
 
-    // Adgang til iframe'en ved navn 'uiMap' inden for main frame
+    // Adgang til iframe 'uiMap'
     var i = f.document.querySelector('iframe[name="uiMap"]');
-    if (!i) return; // Afslutter, hvis iframe'en ikke findes
+    if (!i) {
+        alert("Iframe 'uiMap' blev ikke fundet.");
+        return;
+    }
 
-    // Adgang til iframe'en
     var d = i.contentDocument || i.contentWindow.document; 
-    if (!d) return; // Afslutter, hvis iframe ikke er tilgængeligt
+    if (!d) {
+        alert("Indhold af iframe 'uiMap' er ikke tilgængeligt.");
+        return;
+    }
 
-    // Finder alle <td>-elementer med attributten orafield="obligationInfo"
     var tds = d.querySelectorAll('td[orafield="obligationInfo"]');
-    var foundIds = new Set(); // Opretter sæt til at gemme matchede IDs
+    var foundIds = new Set(); 
+    var checkedCount = 0; // Tæller antallet af afkrydsede felter
 
-    // Itererer over hvert input-ID, som brugeren har indtastet
     ids.forEach(function(inputId) {
-        // Gennemgår alle <td>-elementer i iframe'en
+        // For hvert ID, gå alle tds igennem
         tds.forEach(function(td) {
-            var tdText = td.textContent || ''; // Henter tekstindholdet i <td>
-            
-            // Tjekker, om tekstindholdet indeholder det aktuelle input-ID
+            var tdText = td.textContent || '';
             if (tdText.includes(inputId)) {
-                foundIds.add(inputId); // Tilføjer det matchede ID til sættet
-
-                // Finder parent <tr> (rækken) som indeholder <td>'en
+                foundIds.add(inputId);
                 var tr = td.closest('tr');
                 if (tr) {
-                    // Finder en checkbox i rækken
                     var checkbox = tr.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        checkbox.checked = true; // Marker checkboxen som valgt
-                        
-                        // Udløser en 'change'-hændelse for at simulere brugerinteraktion
+                    if (checkbox && !checkbox.checked) {
+                        checkbox.checked = true;
+                        checkedCount++;
                         var e = new Event('change', { bubbles: true });
                         checkbox.dispatchEvent(e);
                     }
                 }
             }
         });
-        // Opdaterer fremdriften efter at have behandlet hvert ID
         updateProgress();
     });
 
-    // Opdaterer sidens titel for at angive, at markeringen er færdig
     document.title = 'Markering færdig - ' + originalTitle;
-
-    // Gendanner den oprindelige titel efter 5 sekunder
     setTimeout(function() {
         document.title = originalTitle;
     }, 5000);
 
-    // ID's som ikke kan fremfindes:
     var notFound = ids.filter(function(id) {
         return !foundIds.has(id);
     });
 
-    // Besked-boks med status
-    if (notFound.length === 0) {
-        alert("Krydsbot er færdig.\nAlle fordringsIDs er krydset af.");
-    } else if (notFound.length === 1) {
-        alert("Krydsbot er færdig.\nDette fordringsID blev ikke fundet: " + notFound[0]);
+    // Opbygning af slutbesked baseret på betingelserne
+    var totalAngivne = ids.length;
+    var totalFundne = foundIds.size;
+    var ikkeFundneCount = notFound.length;
+    var besked = "";
+
+    if (totalAngivne === 0) {
+        // Ingen indtastede IDs (skulle være fanget tidligere, men for en sikkerheds skyld)
+        besked = "Skriv fordringsIDs ind til afkrydsning.";
+    } else if (checkedCount === 0) {
+        // Ingen felter blev krydset af
+        besked = "Der blev ikke fundet noget fordringsID til afkrydsning.";
+    } else if (totalFundne === totalAngivne) {
+        // Alle fundne
+        besked = "Krydsbot er færdig.\nAlle angivne fordringsIDs er krydset af.\n" +
+                 "Angivne fordringsIDs: " + totalAngivne + ". " +
+                 "Fundne fordringsIDs: " + totalFundne + ". " +
+                 "Afkrydsede felter: " + checkedCount + ".";
+    } else if (ikkeFundneCount === 1) {
+        // En enkelt manglende ID
+        besked = "Krydsbot er færdig.\n" +
+                 "Angivne fordringsIDs: " + totalAngivne + ". " +
+                 "Fundne fordringsIDs: " + totalFundne + ". " +
+                 "Afkrydsede felter: " + checkedCount + ".\n" +
+                 "Dette fordringsID blev ikke fundet:\n" +
+                 notFound[0];
     } else {
-        alert("Krydsbot er færdig.\nDisse fordringsIDs blev ikke fundet: " + notFound.join(", "));
+        // Flere manglende
+        besked = "Krydsbot er færdig.\n" +
+                 "Angivne fordringsIDs: " + totalAngivne + ". " +
+                 "Fundne fordringsIDs: " + totalFundne + ". " +
+                 "Afkrydsede felter: " + checkedCount + ".\n" +
+                 "Disse fordringsIDs blev ikke fundet:\n" +
+                 notFound.join(", ");
     }
+
+    alert(besked);
 })();
