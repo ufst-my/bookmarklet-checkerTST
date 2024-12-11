@@ -36,7 +36,6 @@ javascript:(function() {
 
     // Itererer over hvert input-ID, som brugeren har indtastet
     ids.forEach(function(inputId) {
-
         // Gennemgår alle <td>-elementer i iframe'en
         tds.forEach(function(td) {
             var tdText = td.textContent || ''; // Henter tekstindholdet i <td>
@@ -60,7 +59,6 @@ javascript:(function() {
                 }
             }
         });
-
         // Opdaterer fremdriften efter at have behandlet hvert ID
         updateProgress();
     });
@@ -73,16 +71,17 @@ javascript:(function() {
         document.title = originalTitle;
     }, 5000);
 
-    // Find IDs der ikke blev matchet
+    // ID's som ikke kan fremfindes:
     var notFound = ids.filter(function(id) {
         return !foundIds.has(id);
     });
 
-    // Vis besked-boks med status
+    // Besked-boks med status
     if (notFound.length === 0) {
         alert("Krydsbot er færdig.\nAlle fordringsIDs er krydset af.");
+    } else if (notFound.length === 1) {
+        alert("Krydsbot er færdig.\nDette fordringsID blev ikke fundet: " + notFound[0]);
     } else {
-        alert("Krydsbot er færdig.\nDisse fordringsIDs er ikke krydset af: " + notFound.join(", "));
+        alert("Krydsbot er færdig.\nDisse fordringsIDs blev ikke fundet: " + notFound.join(", "));
     }
-
 })();
