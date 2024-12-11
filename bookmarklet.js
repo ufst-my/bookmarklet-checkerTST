@@ -1,8 +1,7 @@
 javascript:(function() {
     var inputIds = prompt('Indtast fordringsIDs adskilt af komma eller linjeskift:', '');
     if (inputIds === null) { 
-        // Hvis brugeren trykker annuller
-        alert("Skriv fordringsIDs ind til afkrydsning.");
+        // Hvis brugeren trykker annuller, afslut uden at vise en besked
         return; 
     }
 
@@ -13,7 +12,7 @@ javascript:(function() {
 
     // Hvis ingen gyldige IDs
     if (ids.length === 0) {
-        alert("Skriv fordringsIDs ind til afkrydsning.");
+        alert("Der skal angives mindst ét fordringsID");
         return;
     }
 
@@ -52,7 +51,6 @@ javascript:(function() {
     var checkedCount = 0; // Tæller antallet af afkrydsede felter
 
     ids.forEach(function(inputId) {
-        // For hvert ID, gå alle tds igennem
         tds.forEach(function(td) {
             var tdText = td.textContent || '';
             if (tdText.includes(inputId)) {
@@ -88,19 +86,15 @@ javascript:(function() {
     var besked = "";
 
     if (totalAngivne === 0) {
-        // Ingen indtastede IDs (skulle være fanget tidligere, men for en sikkerheds skyld)
-        besked = "Skriv fordringsIDs ind til afkrydsning.";
+        besked = "Der skal angives mindst ét fordringsID";
     } else if (checkedCount === 0) {
-        // Ingen felter blev krydset af
         besked = "Der blev ikke fundet noget fordringsID til afkrydsning.";
     } else if (totalFundne === totalAngivne) {
-        // Alle fundne
         besked = "Krydsbot er færdig.\nAlle angivne fordringsIDs er krydset af.\n" +
                  "Angivne fordringsIDs: " + totalAngivne + ". " +
                  "Fundne fordringsIDs: " + totalFundne + ". " +
                  "Afkrydsede felter: " + checkedCount + ".";
     } else if (ikkeFundneCount === 1) {
-        // En enkelt manglende ID
         besked = "Krydsbot er færdig.\n" +
                  "Angivne fordringsIDs: " + totalAngivne + ". " +
                  "Fundne fordringsIDs: " + totalFundne + ". " +
@@ -108,7 +102,6 @@ javascript:(function() {
                  "Dette fordringsID blev ikke fundet:\n" +
                  notFound[0];
     } else {
-        // Flere manglende
         besked = "Krydsbot er færdig.\n" +
                  "Angivne fordringsIDs: " + totalAngivne + ". " +
                  "Fundne fordringsIDs: " + totalFundne + ". " +
