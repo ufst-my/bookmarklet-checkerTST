@@ -5,17 +5,35 @@ javascript:(function() {
         return; 
     }
 
-    // Split og trim
-    var ids = inputIds.split(/[\r\n,]+/).map(function(id) { return id.trim(); });
-    // Fjern tomme strenge
-    ids = ids.filter(function(id) { return id.length > 0; });
+    // Split, trim og filtrer input
+    var rawIds = inputIds.split(/[\r\n,]+/).map(function(id) { return id.trim(); });
+    rawIds = rawIds.filter(function(id) { return id.length > 0; }); // Fjern tomme
+
+    var validIds = [];
+    var invalidIds = [];
+
+    // Check for 12-cifrede tal
+    rawIds.forEach(function(rid) {
+        // Tjek om rid er et 12-cifret tal
+        if (/^\d{12}$/.test(rid)) {
+            validIds.push(rid);
+        } else {
+            invalidIds.push(rid);
+        }
+    });
 
     // Hvis ingen gyldige IDs
-    if (ids.length === 0) {
+    if (validIds.length === 0) {
         alert("Der skal angives mindst ét fordringsID");
         return;
     }
 
+    var totalAngivne = validIds.length;
+    // Fjern dubletter fra validIds for det egentlige opslag
+    var uniqueIds = Array.from(new Set(validIds));
+    var totalAngivneDubletter = totalAngivne - uniqueIds.length;
+
+    var ids = uniqueIds; // Disse bruges til den egentlige krydsning
     var totalIds = ids.length; 
     var processedCount = 0;
     var originalTitle = document.title || 'My Page';
@@ -79,35 +97,39 @@ javascript:(function() {
         return !foundIds.has(id);
     });
 
-    // Opbygning af slutbesked baseret på betingelserne
-    var totalAngivne = ids.length;
     var totalFundne = foundIds.size;
-    var ikkeFundneCount = notFound.length;
-    var besked = "";
 
-    if (totalAngivne === 0) {
-        besked = "Der skal angives mindst ét fordringsID";
-    } else if (checkedCount === 0) {
+    // Opbygning af slutbesked
+    var besked = "Krydsbot er færdig.\n";
+
+    // Håndter scenarioer
+    if (checkedCount === 0) {
+        // Ingen felter afkrydset
         besked = "Der blev ikke fundet noget fordringsID til afkrydsning.";
-    } else if (totalFundne === totalAngivne) {
-        besked = "Krydsbot er færdig.\nAlle angivne fordringsIDs er krydset af.\n" +
-                 "Angivne fordringsIDs: " + totalAngivne + ". " +
-                 "Fundne fordringsIDs: " + totalFundne + ". " +
-                 "Afkrydsede felter: " + checkedCount + ".";
-    } else if (ikkeFundneCount === 1) {
-        besked = "Krydsbot er færdig.\n" +
-                 "Angivne fordringsIDs: " + totalAngivne + ". " +
-                 "Fundne fordringsIDs: " + totalFundne + ". " +
-                 "Afkrydsede felter: " + checkedCount + ".\n" +
-                 "Dette fordringsID blev ikke fundet:\n" +
-                 notFound[0];
-    } else {
-        besked = "Krydsbot er færdig.\n" +
-                 "Angivne fordringsIDs: " + totalAngivne + ". " +
-                 "Fundne fordringsIDs: " + totalFundne + ". " +
-                 "Afkrydsede felter: " + checkedCount + ".\n" +
-                 "Disse fordringsIDs blev ikke fundet:\n" +
-                 notFound.join(", ");
+    } else if (totalFundne === ids.length && notFound.length === 0) {
+        // Alle fundne
+        besked += "Alle angivne fordringsIDs er krydset af.\n";
+    } else if (notFound.length === 1) {
+        // En enkelt ikke fundet
+        besked += "Dette fordringsID blev ikke fundet:\n" + notFound[0] + "\n";
+    } else if (notFound.length > 1) {
+        // Flere ikke fundet
+        besked += "Disse fordringsIDs blev ikke fundet:\n" + notFound.join(", ") + "\n";
+    }
+
+    // Tilføj statuslinjer for angivne, fundne, afkrydsede
+    // Hvis ingen afkrydninger, har vi allerede vist en besked, men det skader ikke at vise detaljer.
+    // Som minimum ved "ingen afkrydninger" er der ingen fundne, men vi følger den generelle struktur.
+    var angivneLinje = "Angivne fordringsIDs: " + totalAngivne;
+    if (totalAngivneDubletter > 0) {
+        angivneLinje += " (heraf angivne dubletter: " + totalAngivneDubletter + ")";
+    }
+    angivneLinje += ".";
+    besked += angivneLinje + " Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".";
+
+    // Hvis der er invalid input, tilføj nederst
+    if (invalidIds.length > 0) {
+        besked += "\nDette blev angivet, men ikke accepteret som fordringsID af Krydsbot:\n" + invalidIds.join(", ");
     }
 
     alert(besked);
