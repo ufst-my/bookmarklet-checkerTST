@@ -1,24 +1,22 @@
 javascript:(function() {
-    // Brugeren bliver bedt om at indtaste fordringsIDs
     var inputIds = prompt('Indtast fordringsIDs adskilt af komma eller linjeskift:', '');
     if (inputIds === null) { 
         // Hvis brugeren trykker "Annuller", afslut uden at vise nogen besked
         return; 
     }
 
-    // Split brugerens input til et array, fjern whitespace og udelad tomme værdier
+    // Split, trim og filtrer input
     var rawIds = inputIds.split(/[\r\n,]+/).map(function(id) { return id.trim(); });
     rawIds = rawIds.filter(function(id) { return id.length > 0; });
 
-    // Initialiser lister til at skelne mellem gyldige og ugyldige input
-    var validIds = []; // Indeholder kun fordringsIDs med præcis 12 cifre
-    var invalidIds = []; // Indeholder alt andet input, der ikke er 12 cifre
+    var validIds = [];
+    var invalidIds = [];
 
-    // Iterer over hver indtastet værdi og sorter i henhold til format
+    // Check for 12-cifrede tal
     rawIds.forEach(function(rid) {
-        if (/^\d{12}$/.test(rid)) { // Hvis værdien består af præcis 12 cifre
+        if (/^\d{12}$/.test(rid)) {
             validIds.push(rid);
-        } else { // Alt andet anses som ugyldigt
+        } else {
             invalidIds.push(rid);
         }
     });
@@ -123,8 +121,8 @@ javascript:(function() {
     if (totalAngivneDubletter > 0) {
         angivneLinje += " (heraf angivne dubletter: " + totalAngivneDubletter + ")";
     }
-    angivneLinje += ".";
-    besked += angivneLinje + " Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".\n";
+    angivneLinje += ".\n"; // Tilføj linjeskift her
+    besked += angivneLinje + "Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".\n";
 
     // Tilføj linje med ikke fundne IDs, hvis relevant
     if (notFound.length === 1) {
