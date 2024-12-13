@@ -1,136 +1,143 @@
 javascript:(function() {
+    // Brugeren bliver bedt om at indtaste fordringsIDs
     var inputIds = prompt('Indtast fordringsIDs adskilt af komma eller linjeskift:', '');
     if (inputIds === null) { 
-        // Hvis brugeren trykker annuller, afslut uden at vise en besked
+        // Hvis brugeren trykker "Annuller", afslut uden at vise nogen besked
         return; 
     }
 
-    // Split, trim og filtrer input
+    // Split brugerens input til et array, fjern whitespace og udelad tomme værdier
     var rawIds = inputIds.split(/[\r\n,]+/).map(function(id) { return id.trim(); });
-    rawIds = rawIds.filter(function(id) { return id.length > 0; }); // Fjern tomme
+    rawIds = rawIds.filter(function(id) { return id.length > 0; });
 
-    var validIds = [];
-    var invalidIds = [];
+    // Initialiser lister til at skelne mellem gyldige og ugyldige input
+    var validIds = []; // Indeholder kun fordringsIDs med præcis 12 cifre
+    var invalidIds = []; // Indeholder alt andet input, der ikke er 12 cifre
 
-    // Check for 12-cifrede tal
+    // Iterer over hver indtastet værdi og sorter i henhold til format
     rawIds.forEach(function(rid) {
-        // Tjek om rid er et 12-cifret tal
-        if (/^\d{12}$/.test(rid)) {
+        if (/^\d{12}$/.test(rid)) { // Hvis værdien består af præcis 12 cifre
             validIds.push(rid);
-        } else {
+        } else { // Alt andet anses som ugyldigt
             invalidIds.push(rid);
         }
     });
 
-    // Hvis ingen gyldige IDs
+    // Hvis ingen gyldige IDs er indtastet, vis en besked og afslut
     if (validIds.length === 0) {
         alert("Der skal angives mindst ét fordringsID");
         return;
     }
 
+    // Beregn totale angivne IDs og fjern dubletter
     var totalAngivne = validIds.length;
-    // Fjern dubletter fra validIds for det egentlige opslag
-    var uniqueIds = Array.from(new Set(validIds));
-    var totalAngivneDubletter = totalAngivne - uniqueIds.length;
+    var uniqueIds = Array.from(new Set(validIds)); // Fjern dubletter
+    var totalAngivneDubletter = totalAngivne - uniqueIds.length; // Beregn antal dubletter
 
-    var ids = uniqueIds; // Disse bruges til den egentlige krydsning
-    var totalIds = ids.length; 
-    var processedCount = 0;
-    var originalTitle = document.title || 'My Page';
+    // De unikke IDs bruges til krydsningsprocessen
+    var ids = uniqueIds; 
+    var totalIds = ids.length; // Total antal unikke IDs
+    var processedCount = 0; // Holder styr på antallet af behandlede IDs
+    var originalTitle = document.title || 'My Page'; // Gemmer sidens oprindelige titel
 
+    // Funktion til at opdatere fremdriften i fanens titel
     function updateProgress() {
         processedCount++;
-        var pct = Math.round((processedCount / totalIds) * 100);
-        document.title = 'Markerer: ' + pct + '% - ' + originalTitle;
+        var pct = Math.round((processedCount / totalIds) * 100); // Procentdel fuldført
+        document.title = 'Markerer: ' + pct + '% - ' + originalTitle; // Opdater titel
     }
 
-    // Adgang til main frame
+    // Find "main" frame i dokumentet
     var f = window.frames['main'];
     if (!f) {
         alert("Rammen 'main' blev ikke fundet.");
         return;
     }
 
-    // Adgang til iframe 'uiMap'
+    // Find "uiMap" iframe indenfor "main"-rammen
     var i = f.document.querySelector('iframe[name="uiMap"]');
     if (!i) {
         alert("Iframe 'uiMap' blev ikke fundet.");
         return;
     }
 
+    // Hent iframe-indholdet
     var d = i.contentDocument || i.contentWindow.document; 
     if (!d) {
         alert("Indhold af iframe 'uiMap' er ikke tilgængeligt.");
         return;
     }
 
+    // Find alle <td>-elementer med attributten `orafield="obligationInfo"`
     var tds = d.querySelectorAll('td[orafield="obligationInfo"]');
-    var foundIds = new Set(); 
+    var foundIds = new Set(); // Holder styr på hvilke IDs der er fundet
     var checkedCount = 0; // Tæller antallet af afkrydsede felter
 
+    // Iterer over hver ID i listen
     ids.forEach(function(inputId) {
+        // For hver <td> i iframe'en, tjek om teksten matcher det aktuelle ID
         tds.forEach(function(td) {
-            var tdText = td.textContent || '';
-            if (tdText.includes(inputId)) {
-                foundIds.add(inputId);
-                var tr = td.closest('tr');
+            var tdText = td.textContent || ''; // Hent tekstindholdet
+            if (tdText.includes(inputId)) { // Hvis teksten indeholder ID'et
+                foundIds.add(inputId); // Tilføj ID'et til listen over fundne
+                var tr = td.closest('tr'); // Find den tilhørende tabelrække
                 if (tr) {
-                    var checkbox = tr.querySelector('input[type="checkbox"]');
-                    if (checkbox && !checkbox.checked) {
-                        checkbox.checked = true;
-                        checkedCount++;
-                        var e = new Event('change', { bubbles: true });
-                        checkbox.dispatchEvent(e);
+                    var checkbox = tr.querySelector('input[type="checkbox"]'); // Find en checkbox i rækken
+                    if (checkbox && !checkbox.checked) { // Hvis checkboxen ikke allerede er markeret
+                        checkbox.checked = true; // Marker den
+                        checkedCount++; // Forøg tælleren for afkrydsede felter
+                        var e = new Event('change', { bubbles: true }); // Simuler en 'change'-hændelse
+                        checkbox.dispatchEvent(e); // Udløs hændelsen
                     }
                 }
             }
         });
-        updateProgress();
+        updateProgress(); // Opdater fremdrift efter hver iteration
     });
 
+    // Når processen er færdig, opdater titlen og gendan den oprindelige titel efter 5 sekunder
     document.title = 'Markering færdig - ' + originalTitle;
     setTimeout(function() {
         document.title = originalTitle;
     }, 5000);
 
+    // Identificer IDs, der ikke blev fundet
     var notFound = ids.filter(function(id) {
         return !foundIds.has(id);
     });
 
-    var totalFundne = foundIds.size;
+    var totalFundne = foundIds.size; // Antallet af unikke fundne IDs
 
-    // Opbygning af slutbesked
+    // Opbygning af slutbeskeden
     var besked = "Krydsbot er færdig.\n";
 
-    // Håndter scenarioer
+    // Håndtering af forskellige scenarier
     if (checkedCount === 0) {
-        // Ingen felter afkrydset
-        besked = "Der blev ikke fundet noget fordringsID til afkrydsning.";
+        besked += "Der blev ikke fundet noget fordringsID til afkrydsning.\n";
     } else if (totalFundne === ids.length && notFound.length === 0) {
-        // Alle fundne
         besked += "Alle angivne fordringsIDs er krydset af.\n";
-    } else if (notFound.length === 1) {
-        // En enkelt ikke fundet
-        besked += "Dette fordringsID blev ikke fundet:\n" + notFound[0] + "\n";
-    } else if (notFound.length > 1) {
-        // Flere ikke fundet
-        besked += "Disse fordringsIDs blev ikke fundet:\n" + notFound.join(", ") + "\n";
     }
 
-    // Tilføj statuslinjer for angivne, fundne, afkrydsede
-    // Hvis ingen afkrydninger, har vi allerede vist en besked, men det skader ikke at vise detaljer.
-    // Som minimum ved "ingen afkrydninger" er der ingen fundne, men vi følger den generelle struktur.
+    // Tilføj statuslinjer
     var angivneLinje = "Angivne fordringsIDs: " + totalAngivne;
     if (totalAngivneDubletter > 0) {
         angivneLinje += " (heraf angivne dubletter: " + totalAngivneDubletter + ")";
     }
     angivneLinje += ".";
-    besked += angivneLinje + " Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".";
+    besked += angivneLinje + " Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".\n";
 
-    // Hvis der er invalid input, tilføj nederst
-    if (invalidIds.length > 0) {
-        besked += "\nDette blev angivet, men ikke accepteret som fordringsID af Krydsbot:\n" + invalidIds.join(", ");
+    // Tilføj linje med ikke fundne IDs, hvis relevant
+    if (notFound.length === 1) {
+        besked += "Dette fordringsID blev ikke fundet:\n" + notFound[0] + "\n";
+    } else if (notFound.length > 1) {
+        besked += "Disse fordringsIDs blev ikke fundet:\n" + notFound.join(", ") + "\n";
     }
 
+    // Tilføj linje med ugyldigt input, hvis relevant
+    if (invalidIds.length > 0) {
+        besked += "Dette blev angivet, men ikke accepteret som fordringsID af Krydsbot:\n" + invalidIds.join(", ");
+    }
+
+    // Vis slutbeskeden
     alert(besked);
 })();
