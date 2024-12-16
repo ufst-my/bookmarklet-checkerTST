@@ -130,11 +130,14 @@ javascript:(function() {
     angivneLinje += ".\n"; 
     besked += angivneLinje + "Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".\n";
 
-    // Tilføj linje om allerede krydsede fordringsIDs
-    if (alreadyCheckedIds.length === 1) {
-        besked += "Dette fordringsID var allerede krydset af før kørsel af KrydsBot:\n" + alreadyCheckedIds[0] + "\n";
-    } else if (alreadyCheckedIds.length > 1) {
-        besked += "Disse fordringsIDs var allerede krydset af før kørsel af KrydsBot:\n" + alreadyCheckedIds.join(", ") + "\n";
+    // Fjern dubletter fra alreadyCheckedIds
+    var uniqueAlreadyCheckedIds = Array.from(new Set(alreadyCheckedIds));
+    
+    // Tilføj linje om allerede krydsede fordringsIDs (kun unikke)
+    if (uniqueAlreadyCheckedIds.length === 1) {
+        besked += "Dette fordringsID var allerede krydset af før kørsel af KrydsBot:\n" + uniqueAlreadyCheckedIds[0] + "\n";
+    } else if (uniqueAlreadyCheckedIds.length > 1) {
+        besked += "Disse fordringsIDs var allerede krydset af før kørsel af KrydsBot:\n" + uniqueAlreadyCheckedIds.join(", ") + "\n";
     }
 
     // Tilføj linje med ikke fundne IDs, hvis relevant
