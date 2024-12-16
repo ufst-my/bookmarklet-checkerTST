@@ -1,8 +1,8 @@
 javascript:(function() {
     var inputIds = prompt('Indtast fordringsIDs adskilt af komma eller linjeskift:', '');
-    if (inputIds === null) { 
+    if (inputIds === null) {
         // Hvis brugeren trykker "Annuller", afslut uden at vise nogen besked
-        return; 
+        return;
     }
 
     // Split, trim og filtrer input
@@ -33,7 +33,7 @@ javascript:(function() {
     var totalAngivneDubletter = totalAngivne - uniqueIds.length; // Beregn antal dubletter
 
     // De unikke IDs bruges til krydsningsprocessen
-    var ids = uniqueIds; 
+    var ids = uniqueIds;
     var totalIds = ids.length; // Total antal unikke IDs
     var processedCount = 0; // Holder styr på antallet af behandlede IDs
     var originalTitle = document.title || 'My Page'; // Gemmer sidens oprindelige titel
@@ -60,7 +60,7 @@ javascript:(function() {
     }
 
     // Hent iframe-indholdet
-    var d = i.contentDocument || i.contentWindow.document; 
+    var d = i.contentDocument || i.contentWindow.document;
     if (!d) {
         alert("Indhold af iframe 'uiMap' er ikke tilgængeligt.");
         return;
@@ -70,6 +70,7 @@ javascript:(function() {
     var tds = d.querySelectorAll('td[orafield="obligationInfo"]');
     var foundIds = new Set(); // Holder styr på hvilke IDs der er fundet
     var checkedCount = 0; // Tæller antallet af afkrydsede felter
+    var alreadyCheckedIds = []; // Holder styr på fordringsIDs, som allerede var krydset af
 
     // Iterer over hver gyldigt ID i listen
     ids.forEach(function(inputId) {
@@ -81,11 +82,16 @@ javascript:(function() {
                 var tr = td.closest('tr'); // Find den tilhørende tabelrække
                 if (tr) {
                     var checkbox = tr.querySelector('input[type="checkbox"]'); // Find en checkbox i rækken
-                    if (checkbox && !checkbox.checked) { // Hvis checkboxen ikke allerede er markeret
-                        checkbox.checked = true; // Marker den
-                        checkedCount++; // Forøg tælleren for afkrydsede felter
-                        var e = new Event('change', { bubbles: true }); // Simuler brugeradfærd med en 'change'-hændelse
-                        checkbox.dispatchEvent(e); // Udløs hændelsen
+                    if (checkbox) {
+                        if (!checkbox.checked) {
+                            checkbox.checked = true; // Marker den
+                            checkedCount++; // Forøg tælleren for afkrydsede felter
+                            var e = new Event('change', { bubbles: true }); // Simuler brugeradfærd med en 'change'-hændelse
+                            checkbox.dispatchEvent(e); // Udløs hændelsen
+                        } else {
+                            // Hvis allerede krydset af
+                            alreadyCheckedIds.push(inputId);
+                        }
                     }
                 }
             }
@@ -110,7 +116,7 @@ javascript:(function() {
     var besked = "Krydsbot er færdig.\n";
 
     // Håndtering af forskellige scenarier
-    if (checkedCount === 0) {
+    if (checkedCount === 0 && alreadyCheckedIds.length === 0) {
         besked += "Der blev ikke fundet noget fordringsID til afkrydsning.\n";
     } else if (totalFundne === ids.length && notFound.length === 0) {
         besked += "Alle angivne fordringsIDs er krydset af.\n";
@@ -121,8 +127,15 @@ javascript:(function() {
     if (totalAngivneDubletter > 0) {
         angivneLinje += " (heraf angivne dubletter: " + totalAngivneDubletter + ")";
     }
-    angivneLinje += ".\n"; // Tilføj linjeskift her
+    angivneLinje += ".\n"; 
     besked += angivneLinje + "Fundne fordringsIDs: " + totalFundne + ". Afkrydsede felter: " + checkedCount + ".\n";
+
+    // Tilføj linje om allerede krydsede fordringsIDs
+    if (alreadyCheckedIds.length === 1) {
+        besked += "Dette fordringsID var allerede krydset af før kørsel af KrydsBot:\n" + alreadyCheckedIds[0] + "\n";
+    } else if (alreadyCheckedIds.length > 1) {
+        besked += "Disse fordringsIDs var allerede krydset af før kørsel af KrydsBot:\n" + alreadyCheckedIds.join(", ") + "\n";
+    }
 
     // Tilføj linje med ikke fundne IDs, hvis relevant
     if (notFound.length === 1) {
