@@ -72,7 +72,7 @@ javascript:(function() {
     var checkedCount = 0; // Tæller antallet af afkrydsede felter
 
     // Iterer over hver gyldigt ID i listen
-    ids.forEach(function(inputIds) {
+    ids.forEach(function(inputId) {
         // For hver <td> i iframe'en, tjek om teksten matcher det aktuelle ID
         tds.forEach(function(td) {
             var tdText = td.textContent || ''; // Hent tekstindholdet
