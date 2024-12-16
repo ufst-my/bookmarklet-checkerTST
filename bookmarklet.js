@@ -12,7 +12,7 @@ javascript:(function() {
     var validIds = [];
     var invalidIds = [];
 
-    // Check for 12-cifrede tal
+    // Check for 12-cifrede tal og opdatér validIds og invalidIds
     rawIds.forEach(function(rid) {
         if (/^\d{12}$/.test(rid)) {
             validIds.push(rid);
@@ -71,8 +71,8 @@ javascript:(function() {
     var foundIds = new Set(); // Holder styr på hvilke IDs der er fundet
     var checkedCount = 0; // Tæller antallet af afkrydsede felter
 
-    // Iterer over hver ID i listen
-    ids.forEach(function(inputId) {
+    // Iterer over hver gyldigt ID i listen
+    ids.forEach(function(validIds) {
         // For hver <td> i iframe'en, tjek om teksten matcher det aktuelle ID
         tds.forEach(function(td) {
             var tdText = td.textContent || ''; // Hent tekstindholdet
@@ -84,13 +84,13 @@ javascript:(function() {
                     if (checkbox && !checkbox.checked) { // Hvis checkboxen ikke allerede er markeret
                         checkbox.checked = true; // Marker den
                         checkedCount++; // Forøg tælleren for afkrydsede felter
-                        var e = new Event('change', { bubbles: true }); // Simuler en 'change'-hændelse
+                        var e = new Event('change', { bubbles: true }); // Simuler brugeradfærd med en 'change'-hændelse
                         checkbox.dispatchEvent(e); // Udløs hændelsen
                     }
                 }
             }
         });
-        updateProgress(); // Opdater fremdrift efter hver iteration
+        updateProgress(); // Opdater fremdrift i titel efter hver iteration
     });
 
     // Når processen er færdig, opdater titlen og gendan den oprindelige titel efter 5 sekunder
